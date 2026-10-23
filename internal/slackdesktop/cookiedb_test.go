@@ -2,6 +2,8 @@ package slackdesktop
 
 import (
 	"database/sql"
+	"errors"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -45,5 +47,19 @@ func TestCopyToTempWithLockedCookie(t *testing.T) {
 
 	if err == nil || err != ErrCookieLocked {
 		t.Errorf("error = %q, expected = %q", err, ErrCookieLocked)
+	}
+}
+
+func TestCopyToTempReportsPermissionDenied(t *testing.T) {
+	if os.Geteuid() == 0 {
+		t.Skip("root ignores file modes")
+	}
+	path := filepath.Join(t.TempDir(), "Cookies")
+	if err := os.WriteFile(path, []byte("x"), 0o000); err != nil {
+		t.Fatal(err)
+	}
+	_, err := copyToTemp(path, func(error) bool { return false })
+	if !errors.Is(err, ErrCookieDBUnreadable) {
+		t.Errorf("error = %v, want %v", err, ErrCookieDBUnreadable)
 	}
 }

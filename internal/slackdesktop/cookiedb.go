@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"io"
+	"io/fs"
 	"os"
 
 	_ "modernc.org/sqlite"
@@ -21,6 +22,9 @@ const cookieQuery = `SELECT value, encrypted_value FROM cookies WHERE host_key="
 // at login and long-since checkpointed, so the main-file snapshot is complete.
 func readCookieRow(dbPath string) (string, []byte, error) {
 	if _, err := os.Stat(dbPath); err != nil {
+		if errors.Is(err, fs.ErrPermission) {
+			return "", nil, ErrCookieDBUnreadable
+		}
 		return "", nil, ErrCookieDBMissing
 	}
 
@@ -58,6 +62,11 @@ func copyToTemp(src string, isLockError func(error) bool) (string, error) {
 		// inform the user to close Slack and try again.
 		if isLockError(err) {
 			return "", ErrCookieLocked
+		}
+		// stat can succeed where open fails: macOS TCC protects the Mac App
+		// Store build's container and answers open with EPERM.
+		if errors.Is(err, fs.ErrPermission) {
+			return "", ErrCookieDBUnreadable
 		}
 		return "", ErrCookieDBMissing
 	}

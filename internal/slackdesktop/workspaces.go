@@ -2,6 +2,8 @@ package slackdesktop
 
 import (
 	"encoding/json"
+	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"sort"
@@ -50,6 +52,9 @@ func Workspaces() ([]Workspace, error) {
 	}
 	data, err := os.ReadFile(filepath.Join(dir, "storage", "root-state.json"))
 	if err != nil {
+		if errors.Is(err, fs.ErrPermission) {
+			return nil, ErrCookieDBUnreadable
+		}
 		return nil, ErrNotSignedIn
 	}
 	return parseWorkspaces(data)
