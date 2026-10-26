@@ -1045,3 +1045,18 @@ team_id = "T04T4TH8W"
 		t.Errorf("VersionTS = %q; want empty when unset", got)
 	}
 }
+
+func TestConfig_ShowAvatars(t *testing.T) {
+	if !Default().Appearance.ShowAvatars {
+		t.Error("Default() show_avatars = false, want true")
+	}
+	if !loadConfigString(t, "").Appearance.ShowAvatars {
+		t.Error("empty config: show_avatars = false, want true")
+	}
+	if !loadConfigString(t, "[appearance]\ntheme = \"light\"\n").Appearance.ShowAvatars {
+		t.Error("config without show_avatars: want true")
+	}
+	if loadConfigString(t, "[appearance]\nshow_avatars = false\n").Appearance.ShowAvatars {
+		t.Error("show_avatars = false was not honored")
+	}
+}

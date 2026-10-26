@@ -90,7 +90,9 @@ type General struct {
 type Appearance struct {
 	Theme           string `toml:"theme"`
 	TimestampFormat string `toml:"timestamp_format"`
-	ShowAvatars     bool   `toml:"show_avatars"`
+	// ShowAvatars draws each author's avatar beside channel-pane
+	// messages. Defaults to true; false skips the avatar service.
+	ShowAvatars bool `toml:"show_avatars"`
 	// ImageProtocol controls how inline images are rendered.
 	// One of: "auto", "kitty", "sixel", "halfblock", "off".
 	ImageProtocol string `toml:"image_protocol"`
@@ -229,6 +231,7 @@ func Default() Config {
 		Appearance: Appearance{
 			Theme:           "nord",
 			TimestampFormat: "3:04 PM",
+			ShowAvatars:     true,
 			ImageProtocol:   "auto",
 			MaxImageRows:    20,
 			MaxImageCols:    60,
